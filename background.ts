@@ -24,7 +24,7 @@ browser.messages.onNewMailReceived.addListener(async (inbox: MailFolder, message
         if (!recipient)
             continue;
 
-        const slug: string = recipient.split('@')[0].split('.').slice(-1)[0];
+        const slug: string = recipient.split('@')[0].split('.').slice(-1)[0].toLowerCase();
 
         // Noop if the message already is in a folder with the slug as the name
         if (message.folder.name === slug)
