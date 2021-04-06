@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "esnext",
+        "esModuleInterop": true,
+        "sourceMap": true,
+        "declaration": true,
+        "rootDir": ".",
+        "outDir": "dist",
+        "strict": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "typeRoots": [
+            "./node_modules/@types"
+        ]
+    },
+    "exclude": [
+        "**.spec.ts",
+        "dist",
+        "readme"
+    ]
+}

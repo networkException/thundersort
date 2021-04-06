@@ -1,0 +1,27 @@
+{
+    "extends": "tslint:recommended",
+    "rules": {
+        "semicolon": [
+            true,
+            "always"
+        ],
+        "no-console": [
+            false,
+            "log",
+            "error"
+        ],
+        "typedef": [
+            true,
+            "call-signature"
+        ],
+        "array-type": [true, "generic"],
+        "max-classes-per-file": false,
+        "no-empty-interface": false,
+        "quotemark": [
+            true,
+            "single"
+        ],
+        "no-empty": false,
+        "no-shadowed-variable": false
+    }
+}

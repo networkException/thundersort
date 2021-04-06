@@ -1,0 +1,23 @@
+{
+    "name": "thundersort",
+    "description": "Sort incoming mails into account folders based on the local part",
+    "version": "1",
+    "applications": {
+        "gecko": {
+            "id": "thundersort@nwex.de",
+            "strict_min_version": "74.0b2"
+        }
+    },
+    "permissions": [
+        "messagesRead",
+        "messagesMove",
+        "accountsRead",
+        "accountsFolders"
+    ],
+    "background": {
+        "scripts": [
+            "dist/background.js"
+        ]
+    },
+    "manifest_version": 2
+}
