@@ -2,6 +2,7 @@ import { Browser } from './types/browser';
 import { MailAccount } from './types/mailAccount';
 import { MailFolder } from './types/mailFolder';
 import { MessageList } from './types/messageList';
+import { MessagePart } from './types/messagePart';
 
 declare const browser: Browser;
 
@@ -19,7 +20,17 @@ browser.messages.onNewMailReceived.addListener(async (inbox: MailFolder, message
 
         // The address the message got sent to
         // This expects the name of accounts to be the domain name of the emails
-        const recipient: string | undefined = message.recipients.filter(recipient => recipient.split('@')[1] === account.name)[0];
+        const part: MessagePart = await browser.messages.getFull(message.id);
+
+        if (!part.headers)
+            continue;
+
+        if (!part.headers['delivered-to'])
+            continue;
+
+        const recipient: string | undefined = part.headers['delivered-to']
+            .map(recipient => recipient.replace(/[<>]/g, ''))
+            .filter(recipient => recipient.split('@')[1] === account.name)[0];
 
         if (!recipient)
             continue;

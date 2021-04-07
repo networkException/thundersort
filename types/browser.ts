@@ -1,6 +1,7 @@
 import { MailAccount } from './mailAccount';
 import { MailFolder } from './mailFolder';
 import { MessageList } from './messageList';
+import { MessagePart } from './messagePart';
 
 export declare interface Browser {
     accounts: {
@@ -26,7 +27,9 @@ export declare interface Browser {
     messageDisplayAction: void;
     messageDisplayScripts: void;
     messages: {
-        move(messageIds: Array<number>, destination: MailFolder): void
+        getFull(messageId: number): Promise<MessagePart>,
+        move(messageIds: Array<number>, destination: MailFolder): void,
+        list(folder: MailFolder): Promise<MessageList>,
         onNewMailReceived: { addListener(handler: (folder: MailFolder, messages: MessageList) => void): void }
     };
     theme: void;
