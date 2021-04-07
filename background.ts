@@ -40,3 +40,5 @@ browser.messages.onNewMailReceived.addListener(async (inbox: MailFolder, message
         browser.messages.move([ message.id ], folder);
     }
 });
+
+console.log('Loaded thundersort');
