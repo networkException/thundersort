@@ -6,7 +6,7 @@ import { MessagePart } from './types/messagePart';
 
 declare const browser: Browser;
 
-browser.messages.onNewMailReceived.addListener(async (inbox: MailFolder, messageList: MessageList) => {
+const thundersort = async (inbox: MailFolder, messageList: MessageList) => {
     // Ignore non inbox folders
     if (inbox.type !== 'inbox')
         return;
@@ -48,7 +48,19 @@ browser.messages.onNewMailReceived.addListener(async (inbox: MailFolder, message
         const folder: MailFolder = search ?? await browser.folders.create(message.folder, slug);
 
         // Move the message
-        browser.messages.move([ message.id ], folder);
+        browser.messages.move([message.id], folder);
+    }
+};
+
+browser.messages.onNewMailReceived.addListener(thundersort);
+
+browser.menus.create({
+    title: 'Apply thundersort',
+    contexts: ['folder_pane'],
+    onclick: async (info: { selectedFolder: MailFolder }) => {
+        console.log(info);
+
+        thundersort(info.selectedFolder, await browser.messages.list(info.selectedFolder));
     }
 });
 

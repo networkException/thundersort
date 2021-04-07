@@ -22,7 +22,24 @@ export declare interface Browser {
     };
     mailingLists: void;
     mailTabs: void;
-    menus: void;
+    menus: {
+        create(createProperties: {
+            checked?: boolean,
+            command?: string,
+            contexts?: Array<'all' | 'page' | 'frame' | 'selection' | 'link' | 'editable' | 'password' | 'image' | 'video' | 'audio' | 'browser_action' | 'tab' | 'message_list' | 'folder_pane' | 'compose_attachments'>,
+            documentUrlPatterns?: Array<string>,
+            enabled?: boolean,
+            icons?: any,
+            id?: string,
+            onclick?: (info: any) => void,
+            parentId?: string | number,
+            targetUrlPatterns?: Array<string>,
+            title?: string,
+            type?: 'normal' | 'checkbox' | 'radio' | 'seperator',
+            viewTypes?: Array<'tab' | 'popup' | 'sidebar'>,
+            visible?: boolean
+        }, callback?: () => void): Promise<string | number>
+    };
     messageDisplay: void;
     messageDisplayAction: void;
     messageDisplayScripts: void;

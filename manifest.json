@@ -12,7 +12,8 @@
         "messagesRead",
         "messagesMove",
         "accountsRead",
-        "accountsFolders"
+        "accountsFolders",
+        "menus"
     ],
     "background": {
         "scripts": [
