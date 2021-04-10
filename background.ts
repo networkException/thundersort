@@ -52,14 +52,12 @@ const thundersort = async (inbox: MailFolder, messageList: MessageList) => {
     }
 };
 
-browser.messages.onNewMailReceived.addListener(thundersort);
+browser.messages.onNewMailReceived.addListener((inbox: MailFolder, messageList: MessageList) => thundersort(inbox, messageList));
 
 browser.menus.create({
     title: 'Apply thundersort',
     contexts: ['folder_pane'],
     onclick: async (info: { selectedFolder: MailFolder }) => {
-        console.log(info);
-
         thundersort(info.selectedFolder, await browser.messages.list(info.selectedFolder));
     }
 });
