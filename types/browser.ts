@@ -45,6 +45,7 @@ export declare interface Browser {
     messageDisplayScripts: void;
     messages: {
         getFull(messageId: number): Promise<MessagePart>,
+        getRaw(messageId: number): Promise<string>,
         move(messageIds: Array<number>, destination: MailFolder): void,
         list(folder: MailFolder): Promise<MessageList>,
         onNewMailReceived: { addListener(handler: (folder: MailFolder, messages: MessageList) => void): void }
