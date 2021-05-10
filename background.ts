@@ -60,7 +60,11 @@ const thundersort = async (inbox: MailFolder, messageList: MessageList, ignoreRe
             continue;
         }
 
-        const slug: string = recipient.split('@')[0].split('.').slice(-1)[0].toLowerCase();
+        let slug: string = recipient.split('@')[0].split('.').slice(-1)[0].toLowerCase();
+
+        // Move messages from deprecated account naming to new
+        if (slug === 'accounts' && recipient.endsWith('jakobniklas.de'))
+            slug = 'admin';
 
         // Noop if the message already is in a folder with the slug as the name
         if (message.folder.name === slug)
