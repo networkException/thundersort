@@ -1,4 +1,3 @@
-import { OptionalPromise } from './optional';
 import { Browser } from './types/browser';
 import { MailAccount } from './types/mailAccount';
 import { MailFolder } from './types/mailFolder';
@@ -73,13 +72,10 @@ const thundersort = async (inbox: MailFolder, messageList: MessageList, ignoreRe
 
         console.log('Message from ' + message.author + ' to ' + recipient + ' should be moved to ' + slug);
 
-        const subFolders = await OptionalPromise.of(browser.folders.getSubFolders(inbox, false));
-
-        if (!subFolders.hasValue())
-            continue;
+        const subFolders = await browser.folders.getSubFolders(inbox, false);
 
         // Find an existing folder or create a new one
-        const search: MailFolder | undefined = subFolders.value.filter(subFolder => subFolder.name === slug)[0];
+        const search: MailFolder | undefined = subFolders.filter(subFolder => subFolder.name === slug)[0];
         const folder: MailFolder = search ?? await browser.folders.create(message.folder, slug);
 
         // Move the message
