@@ -18,7 +18,8 @@ export declare interface Browser {
     folders: {
         create(parentFolder: MailFolder, childName: string): any,
         rename(folder: MailFolder, newName: string): void,
-        delete(folder: MailFolder): void
+        delete(folder: MailFolder): void,
+        getSubFolders(folderOrAccount: MailFolder | MailAccount, includeSubFolders: boolean): Promise<Array<MailFolder>>
     };
     mailingLists: void;
     mailTabs: void;
