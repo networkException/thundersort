@@ -5,7 +5,7 @@
     "applications": {
         "gecko": {
             "id": "thundersort@nwex.de",
-            "strict_min_version": "91"
+            "strict_min_version": "91.12"
         }
     },
     "permissions": [
