@@ -59,33 +59,33 @@ declare const browser: Browser;
         }
     });
 
+    const removeAngleBrackets = (input: string) => input.replace(/[<>]/g, '')
+
     const getRecipient = async (messageId: number, accountName: string): Promise<string | undefined> => {
-        return new Promise(resolve => {
-            browser.messages.getFull(messageId).then((part: MessagePart) => {
-                if (!part.headers)
-                    throw new Error();
+        const full = await browser.messages.getFull(messageId);
 
-                const recipient: string | undefined = part.headers['delivered-to']
-                    .map(recipient => recipient.replace(/[<>]/g, ''))
-                    .filter(recipient => recipient.split('@')[1] === accountName)[0];
+        const fullTo = (full.headers?.['to'] ?? [])
+            .map(recipient => removeAngleBrackets(recipient))
+            .filter(recipient => recipient.split('@')[1] === accountName);
 
-                if (!recipient)
-                    throw new Error();
+        if (fullTo.length > 0)
+            return fullTo[0];
 
-                resolve(recipient);
-            }).catch(() => browser.messages.getRaw(messageId).then((raw: string) => {
-                const lines: Array<string> = raw.split('\n').map(line => line.trim());
+        const fullDeliveredTo = (full.headers?.['delivered-to'] ?? [])
+            .map(recipient => removeAngleBrackets(recipient))
+            .filter(recipient => recipient.split('@')[1] === accountName);
 
-                for (const line of lines) {
-                    if (line.startsWith('Delivered-To: ')) {
-                        resolve(line.substring(line.indexOf(' ')).replace(/[<>]/g, '').trim());
-                        return;
-                    }
-                }
+        if (fullDeliveredTo.length > 0)
+            return fullDeliveredTo[0];
 
-                resolve(undefined);
-            }).catch(() => resolve(undefined)));
-        });
+        const raw = await browser.messages.getRaw(messageId);
+        const lines: Array<string> = raw.split('\n').map(line => line.trim());
+
+        for (const line of lines) {
+            if ((line.startsWith('Delivered-To: ') || line.startsWith('To: ')) && line.endsWith('@' + accountName)) {
+                return removeAngleBrackets(line.substring(line.indexOf(' '))).trim();
+            }
+        }
     };
 
     const sortMessage = async (inbox: MailFolder, message: MessageHeader, accountName: string): Promise<void> => {
