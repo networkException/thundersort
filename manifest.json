@@ -1,7 +1,7 @@
 {
     "name": "thundersort",
     "description": "Sort incoming mails into account folders based on the local part",
-    "version": "1",
+    "version": "1.0.0",
     "applications": {
         "gecko": {
             "id": "mozilla@nwex.de",
