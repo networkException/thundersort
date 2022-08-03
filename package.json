@@ -1,0 +1,8 @@
+{
+    "scripts": {
+        "bundle": "./bundle.sh"
+    },
+    "dependencies": {
+        "typescript": "^4.7.4"
+    }
+}
