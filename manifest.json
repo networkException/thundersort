@@ -4,7 +4,7 @@
     "version": "1",
     "applications": {
         "gecko": {
-            "id": "thundersort@nwex.de",
+            "id": "mozilla@nwex.de",
             "strict_min_version": "91.12"
         }
     },
