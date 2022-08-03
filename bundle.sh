@@ -6,4 +6,4 @@ sed -i '2d' dist/background.js # Remove Object.defineProperty(exports, "__esModu
 sed -i '2d' dist/options/index.js
 cp options/index.html dist/options/index.html
 rm thundersort.zip
-zip -qqr thundersort.zip dist options LICENSE manifest.json README.md
+zip -qqr thundersort.zip dist options LICENSE manifest.json README.md package.json package-lock.json types background.ts tsconfig.json
