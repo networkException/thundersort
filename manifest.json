@@ -5,7 +5,8 @@
     "applications": {
         "gecko": {
             "id": "mozilla@nwex.de",
-            "strict_min_version": "91.12"
+            "strict_min_version": "91.0",
+            "strict_max_version": "91.*"
         }
     },
     "permissions": [
