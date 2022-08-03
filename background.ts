@@ -42,6 +42,9 @@ declare const browser: Browser;
         rules: Array<Rule>
     };
 
+    config.autoSort ??= false;
+    config.rules ??= [ { expression: "([^\.]+)@.*$", output: "$1" } ]
+
     console.log('Config: Loaded initial', config);
 
     browser.storage.onChanged.addListener((changes, area) => {

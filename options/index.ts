@@ -49,9 +49,9 @@ async function restoreOptions() {
         rules: Array<Rule>
     };
 
-    document.querySelector<HTMLFormElement>("#auto-sort")!.checked = storage['autoSort'];
+    document.querySelector<HTMLFormElement>("#auto-sort")!.checked = storage['autoSort'] ?? false;
 
-    const rules = storage.rules.reverse();
+    const rules = (storage.rules ?? []).reverse();
 
     if (rules.length === 0) addRule("([^\.]+)@.*$", "$1");
 
