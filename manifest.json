@@ -13,12 +13,18 @@
         "messagesMove",
         "accountsRead",
         "accountsFolders",
-        "menus"
+        "menus",
+        "storage"
     ],
     "background": {
         "scripts": [
             "dist/background.js"
         ]
+    },
+    "options_ui": {
+        "page": "dist/options/index.html",
+        "open_in_tab": false,
+        "browser_style": true
     },
     "manifest_version": 2
 }

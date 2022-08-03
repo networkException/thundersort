@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {
+                padding: 10px;
+            }
+
+            h1 {
+                margin-top: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <form>
+            <h1>Settings</h1>
+            <h2>General</h2>
+
+            <label for="auto-sort">Automatically sort on receive</label>
+            <input type="checkbox" id="auto-sort">
+
+            <hr>
+            <h2>Rules</h2>
+
+            <p>
+                Rules get interpreted from hightest to lowest. As soon as an address matches an expression (the left field),
+                the right field will get used to determent the slug / folder name.
+
+                Use <code>$n</code> (<code>$1</code> for example) to reference captured group, other characters will get used as a literal string
+
+                <br>
+                Defaults are <code>([^\.]+)@.*$</code> and <code>$1</code>.
+            </p>
+
+            <button id="addRule" type="button">Add rule</button>
+
+            <template id="rule">
+                <li class="rule">
+                    <div>
+                        <input type="text" class="expression" value="([^\.]+)@.*$">
+                        <input type="text" class="output" value="$1">
+                        <button class="removeRule" type="button">Remove rule</button>
+                    </div>
+                </li>
+            </template>
+
+            <ol id="rules">
+            </ol>
+
+            <br>
+
+            <label for="test-rules-input">Enter an address to test the rules</label>
+            <br>
+            <input type="text" id="test-rules-input" value="2.something.test@example.com" style="width: 100%">
+
+            <br>
+
+            <label for="test-rules-output">Matched slug</label>
+            <br>
+            <input type="text" id="test-rules-output" disabled style="width: 100%">
+
+            <div class="output"></div>
+
+            <hr>
+            <button type="submit">Save</button>
+        </form>
+        <script src="index.js"></script>
+    </body>
+</html>
