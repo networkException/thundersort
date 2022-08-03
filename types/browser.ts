@@ -1,7 +1,13 @@
+import { Event } from './event';
 import { MailAccount } from './mailAccount';
 import { MailFolder } from './mailFolder';
+import { MessageChangeProperties } from './messageChangeProperties';
+import { MessageHeader } from './messageHeader';
 import { MessageList } from './messageList';
 import { MessagePart } from './messagePart';
+import { OnClickData } from './onClickData';
+import { StorageArea, StorageChanges } from './storage';
+import { Tab } from './tab';
 
 export declare interface Browser {
     accounts: {
@@ -24,15 +30,15 @@ export declare interface Browser {
     mailingLists: void;
     mailTabs: void;
     menus: {
-        create(createProperties: {
+        create<T = OnClickData>(createProperties: {
             checked?: boolean,
             command?: string,
-            contexts?: Array<'all' | 'page' | 'frame' | 'selection' | 'link' | 'editable' | 'password' | 'image' | 'video' | 'audio' | 'browser_action' | 'tab' | 'message_list' | 'folder_pane' | 'compose_attachments'>,
+            contexts?: Array<'all' | 'page' | 'frame' | 'selection' | 'link' | 'editable' | 'password' | 'image' | 'video' | 'audio' | 'browser_action' | 'tab' | 'message_list' | 'folder_pane' | 'compose_attachments' | 'message_display_action'>,
             documentUrlPatterns?: Array<string>,
             enabled?: boolean,
             icons?: any,
             id?: string,
-            onclick?: (info: any) => void,
+            onclick?: (info: T) => void,
             parentId?: string | number,
             targetUrlPatterns?: Array<string>,
             title?: string,
@@ -41,7 +47,10 @@ export declare interface Browser {
             visible?: boolean
         }, callback?: () => void): Promise<string | number>
     };
-    messageDisplay: void;
+    messageDisplay: {
+        getDisplayedMessage(tabId: number): Promise<MessageHeader>,
+        onMessageDisplayed: Event<[ tab: Tab, message: MessageHeader ]>
+    };
     messageDisplayAction: void;
     messageDisplayScripts: void;
     messages: {
@@ -49,9 +58,16 @@ export declare interface Browser {
         getRaw(messageId: number): Promise<string>,
         move(messageIds: Array<number>, destination: MailFolder): void,
         list(folder: MailFolder): Promise<MessageList>,
-        onNewMailReceived: { addListener(handler: (folder: MailFolder, messages: MessageList) => void): void }
+        onNewMailReceived: Event<[ folder: MailFolder, messages: MessageList ]>
+        onUpdated: Event<[ message: MessageHeader, changedProperties: MessageChangeProperties ]>
     };
     theme: void;
     tabs: void;
     windows: void;
+    storage: {
+        onChanged: Event<[ changes: StorageChanges, areaName: "sync" | "local" | "managed" ]>,
+        sync: StorageArea,
+        local: StorageArea,
+        managed: StorageArea
+    }
 }
