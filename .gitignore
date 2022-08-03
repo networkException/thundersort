@@ -1,2 +1,6 @@
+# Editor
+.vscode
+
 dist
 *.zip
+
