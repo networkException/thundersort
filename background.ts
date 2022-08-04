@@ -84,7 +84,6 @@ declare const browser: Browser;
 
         for (const possibleRecipient of recipients) {
             const matchingRule = findMatchingRule(config.rules, possibleRecipient);
-            
             if (matchingRule) {
                 recipient = possibleRecipient;
                 slug = calculateSlug(matchingRule.match, matchingRule.rule.output);
