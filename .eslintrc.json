@@ -24,6 +24,7 @@
         "@typescript-eslint/no-empty-interface": "off",
         "@typescript-eslint/no-inferrable-types": "off",
         "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/member-delimiter-style": [
             "warn",
             {
@@ -56,13 +57,30 @@
                 "allowArgumentsExplicitlyTypedAsAny": true
             }
         ],
+        "@typescript-eslint/indent": [
+            "warn",
+            4,
+            {
+                "SwitchCase": 1,
+                // Fix for decorators not being indented correctly,
+                // see https://github.com/typescript-eslint/typescript-eslint/issues/1824#issuecomment-957559729
+                "ignoredNodes": [
+                    "FunctionExpression > .params[decorators.length > 0]",
+                    "FunctionExpression > .params > :matches(Decorator, :not(:first-child))",
+                    "ClassBody.body > PropertyDefinition[decorators.length > 0] > .key"
+                ]
+            }
+        ],
         "@typescript-eslint/semi": "warn",
         "import/first": "warn",
         "import/no-duplicates": "warn",
-        "import/no-unresolved": "warn",
+        "import/no-unresolved": "off",
         "import/no-self-import": "warn",
-        "import/extensions": [ "warn", "always" ],
+        // Default exports rely on the import site to explicitly name them, making
+        // code harder to follow and automatic imports less obvious.
+        "import/no-default-export": "warn",
         "import/order": [ "warn", { "newlines-between": "ignore", "alphabetize": { "order": "asc", "caseInsensitive": true } } ],
+        "indent": "off", // Using @typescript-eslint/indent instead
         "semi": "off", // Using @typescript-eslint/semi instead
         "no-else-return": "warn",
         "no-trailing-spaces": "warn",
@@ -88,13 +106,6 @@
         "eol-last": [
             "warn",
             "always"
-        ],
-        "indent": [
-            "warn",
-            4,
-            {
-                "SwitchCase": 1
-            }
         ],
         "no-empty": [
             "warn",
