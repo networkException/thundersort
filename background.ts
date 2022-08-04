@@ -61,50 +61,41 @@ declare const browser: Browser;
 
     const removeAngleBrackets = (input: string) => input.replace(/[<>]/g, '')
 
-    const getRecipient = async (messageId: number, accountName: string): Promise<string | undefined> => {
-        const full = await browser.messages.getFull(messageId);
+    /// Determines all possible recipients from a message header. For this we use Thunderbird's pre-parsed attributes bccList, ccList and recipients.
+    /// However, this does not work with some emails from mail lists, for example from GitHub, because no header mentions the actual recipient, only a mail list.
+    /// The only way to extract the recipient in this case is the `Recieved` header, which has a sub-header `for`.
+    const getRecipients = async (message: MessageHeader): Promise<Array<string> | undefined> => {
+        const recipients: Array<string> = [ ...message.bccList, ...message.ccList, ...message.recipients ];
 
-        const fullTo = (full.headers?.['to'] ?? [])
-            .map(recipient => removeAngleBrackets(recipient))
-            .filter(recipient => recipient.split('@')[1] === accountName);
-
-        if (fullTo.length > 0)
-            return fullTo[0];
-
-        const fullDeliveredTo = (full.headers?.['delivered-to'] ?? [])
-            .map(recipient => removeAngleBrackets(recipient))
-            .filter(recipient => recipient.split('@')[1] === accountName);
-
-        if (fullDeliveredTo.length > 0)
-            return fullDeliveredTo[0];
-
-        const raw = await browser.messages.getRaw(messageId);
-        const lines: Array<string> = raw.split('\n').map(line => line.trim());
-
-        for (const line of lines) {
-            if ((line.startsWith('Delivered-To: ') || line.startsWith('To: ')) && line.endsWith('@' + accountName)) {
-                return removeAngleBrackets(line.substring(line.indexOf(' '))).trim();
-            }
-        }
+        if (recipients.length > 0) return recipients;
     };
 
     const sortMessage = async (inbox: MailFolder, message: MessageHeader, accountName: string): Promise<void> => {
         // The address the message got sent to
-        // This expects the name of accounts to be the domain name of the emails
-        const recipient: string | undefined = await getRecipient(message.id, accountName);
+        const recipients: Array<string> | undefined = await getRecipients(message);
 
-        if (!recipient) {
+        if (!recipients) {
             console.log('Sort: Message does not have recipient :(');
             return;
         }
 
-        const matchingRule = findMatchingRule(config.rules, recipient);
-        if (!matchingRule) {
-            console.log('Sort: No rule found matching the recipient ' + recipient);
+        let slug: string | undefined;
+        let recipient: string | undefined;
+
+        for (const possibleRecipient of recipients) {
+            const matchingRule = findMatchingRule(config.rules, possibleRecipient);
+            if (matchingRule) {
+                recipient = possibleRecipient;
+                slug = calculateSlug(matchingRule.match, matchingRule.rule.output);
+                break;
+            }
+        }
+
+        if (!recipient || !slug) {
+            console.log('Sort: No rule found matching any recipient.');
             return;
         }
 
-        const slug = calculateSlug(matchingRule.match, matchingRule.rule.output);
 
         // Noop if the message already is in a folder with the slug as the name
         if (message.folder.name === slug)
