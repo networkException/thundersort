@@ -1,4 +1,4 @@
-import { Rule } from './options';
+import { Rule } from './options/index.js';
 import { Browser } from './types/browser';
 import { MailAccount } from './types/mailAccount';
 import { MailFolder } from './types/mailFolder';
