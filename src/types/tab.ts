@@ -1,5 +1,5 @@
 export declare interface Tab {
-    active: boolean,
-    highlighted: boolean,
-    index: number
+    active: boolean;
+    highlighted: boolean;
+    index: number;
 }

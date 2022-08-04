@@ -1,10 +1,8 @@
 import { Rule } from './options.js';
 import { Browser } from './types/browser';
-import { MailAccount } from './types/mailAccount';
 import { MailFolder } from './types/mailFolder';
 import { MessageHeader } from './types/messageHeader';
 import { MessageList } from './types/messageList';
-import { MessagePart } from './types/messagePart';
 import { FolderPaneOnClickData, MessageListOnClickData } from './types/onClickData';
 
 // Shared with options index.ts
@@ -37,13 +35,13 @@ function findMatchingRule(rules: Array<Rule>, address: string): { match: RegExpM
 declare const browser: Browser;
 
 (async function() {
-    let config = (await browser.storage.sync.get()) as {
+    const config = (await browser.storage.sync.get()) as {
         autoSort: boolean,
         rules: Array<Rule>
     };
 
     config.autoSort ??= false;
-    config.rules ??= [ { expression: "([^\.]+)@.*$", output: "$1" } ]
+    config.rules ??= [ { expression: '([^\\.]+)@.*$', output: '$1' } ];
 
     console.log('Config: Loaded initial', config);
 
@@ -55,22 +53,20 @@ declare const browser: Browser;
             // @ts-expect-error It's fine if the key is not in the type definition of config
             config[key] = value;
 
-            console.log(`Config: Value '${key}' got updated to ${JSON.stringify(value)}`)
+            console.log(`Config: Value '${key}' got updated to ${JSON.stringify(value)}`);
         }
     });
 
-    const removeAngleBrackets = (input: string) => input.replace(/[<>]/g, '')
-
     /// Determines all possible recipients from a message header. For this we use Thunderbird's pre-parsed attributes bccList, ccList and recipients.
     /// However, this does not work with some emails from mail lists, for example from GitHub, because no header mentions the actual recipient, only a mail list.
-    /// The only way to extract the recipient in this case is the `Recieved` header, which has a sub-header `for`.
+    /// The only way to extract the recipient in this case is the `Received` header, which has a sub-header `for`.
     const getRecipients = async (message: MessageHeader): Promise<Array<string> | undefined> => {
         const recipients: Array<string> = [ ...message.bccList, ...message.ccList, ...message.recipients ];
 
         if (recipients.length > 0) return recipients;
     };
 
-    const sortMessage = async (inbox: MailFolder, message: MessageHeader, accountName: string): Promise<void> => {
+    const sortMessage = async (inbox: MailFolder, message: MessageHeader): Promise<void> => {
         // The address the message got sent to
         const recipients: Array<string> | undefined = await getRecipients(message);
 
@@ -110,15 +106,13 @@ declare const browser: Browser;
         const folder: MailFolder = search ?? await browser.folders.create(message.folder, slug);
 
         // Move the message
-        browser.messages.move([message.id], folder);
-    }
+        browser.messages.move([ message.id ], folder);
+    };
 
     const sortMessageList = async (inbox: MailFolder, messageList: MessageList, ignoreRead: boolean = true) => {
         // Ignore non inbox folders
         if (inbox.type !== 'inbox')
             return;
-
-        const account: MailAccount = await browser.accounts.get(inbox.accountId);
 
         for (const message of messageList.messages) {
             // Ignore already read messages if enabled
@@ -127,7 +121,7 @@ declare const browser: Browser;
                 continue;
             }
 
-            sortMessage(inbox, message, account.name);
+            sortMessage(inbox, message);
         }
     };
 
@@ -139,7 +133,7 @@ declare const browser: Browser;
         for (const folder of account.folders) {
             if (folder.type === 'inbox') return folder;
         }
-    }
+    };
 
     browser.messages.onNewMailReceived.addListener((inbox: MailFolder, messageList: MessageList) => {
         if (!config.autoSort)
@@ -150,7 +144,7 @@ declare const browser: Browser;
 
     browser.menus.create<FolderPaneOnClickData>({
         title: 'Sort Inbox using Thundersort',
-        contexts: ['folder_pane'],
+        contexts: [ 'folder_pane' ],
         onclick: async ({ selectedFolder }) => {
             const inbox = await getInboxFromFolder(selectedFolder);
             if (inbox === undefined)
@@ -162,7 +156,7 @@ declare const browser: Browser;
 
     browser.menus.create<MessageListOnClickData>({
         title: 'Sort Message(s) using Thundersort',
-        contexts: ['message_list'],
+        contexts: [ 'message_list' ],
         onclick: async ({ selectedMessages, displayedFolder }) => {
             const inbox = await getInboxFromFolder(displayedFolder);
             if (inbox === undefined)

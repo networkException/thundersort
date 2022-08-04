@@ -58,16 +58,16 @@ export declare interface Browser {
         getRaw(messageId: number): Promise<string>,
         move(messageIds: Array<number>, destination: MailFolder): void,
         list(folder: MailFolder): Promise<MessageList>,
-        onNewMailReceived: Event<[ folder: MailFolder, messages: MessageList ]>
+        onNewMailReceived: Event<[ folder: MailFolder, messages: MessageList ]>,
         onUpdated: Event<[ message: MessageHeader, changedProperties: MessageChangeProperties ]>
     };
     theme: void;
     tabs: void;
     windows: void;
     storage: {
-        onChanged: Event<[ changes: StorageChanges, areaName: "sync" | "local" | "managed" ]>,
+        onChanged: Event<[ changes: StorageChanges, areaName: 'sync' | 'local' | 'managed' ]>,
         sync: StorageArea,
         local: StorageArea,
         managed: StorageArea
-    }
+    };
 }
