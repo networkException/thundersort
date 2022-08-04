@@ -1,4 +1,5 @@
 {
+    "$schema": "https://json.schemastore.org/webextension.json",
     "name": "thundersort",
     "description": "Sort incoming mails into account folders based on the local part",
     "version": "1.0.2",
