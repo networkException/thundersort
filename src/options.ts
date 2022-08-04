@@ -1,4 +1,4 @@
-import { Browser } from "../types/browser";
+import { Browser } from "./types/browser";
 
 declare const browser: Browser;
 

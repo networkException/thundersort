@@ -2,7 +2,6 @@
 
 rm -r dist
 npx tsc -p tsconfig.json
-cp options/index.html dist/options/index.html
-cp background.html dist/background.html
+cp src/*.html dist/
 rm thundersort.zip
-zip -qqr thundersort.zip dist options LICENSE manifest.json README.md package.json package-lock.json types background.ts tsconfig.json
+zip -qqr thundersort.zip README.md LICENSE manifest.json package.json package-lock.json tsconfig.json src dist

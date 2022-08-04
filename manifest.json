@@ -22,7 +22,7 @@
         "page": "dist/background.html"
     },
     "options_ui": {
-        "page": "dist/options/index.html",
+        "page": "dist/options.html",
         "open_in_tab": false,
         "browser_style": true
     },
