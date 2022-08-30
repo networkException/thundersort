@@ -1,121 +1,160 @@
+import { Rule, Rules } from './rules.js';
 import { Browser } from './types/browser';
 
 declare const browser: Browser;
 
-export declare interface Rule {
-    expression: string;
-    output: string;
-}
+class Document {
+    static #testRulesInput = document.querySelector<HTMLInputElement>('#test-rules-input')!;
+    static #testRulesOutput = document.querySelector<HTMLInputElement>('#test-rules-output')!;
+    static #rules = document.querySelector<HTMLOListElement>('#rules')!;
 
-function getRules(): Array<Rule> {
-    return Array.from(document.querySelector<HTMLOListElement>('#rules')!.children).map(child => ({
-        expression: child.querySelector<HTMLFormElement>('.expression')!.value,
-        output: child.querySelector<HTMLFormElement>('.output')!.value
-    }));
-}
+    static #addRuleButton = document.querySelector<HTMLButtonElement>('#addRule')!;
+    static #resetRulesButton = document.querySelector<HTMLButtonElement>('#resetRules')!;
 
-const testRulesInput = document.querySelector<HTMLInputElement>('#test-rules-input')!;
-const testRulesOutput = document.querySelector<HTMLInputElement>('#test-rules-output')!;
+    static #saveButton = document.querySelector<HTMLButtonElement>('#save')!;
 
-function testRules() {
-    const input = testRulesInput.value;
+    public static register(): void {
+        document.addEventListener('DOMContentLoaded', Document.restoreOptions);
+        this.#saveButton.onclick = () => Document.saveOptions();
 
-    const matchingRule = findMatchingRule(getRules(), input);
-    if (matchingRule === undefined)
-        return testRulesOutput.value = 'No rule matched';
+        this.registerTestRuleListener(this.#testRulesInput);
 
-    const { match, rule } = matchingRule;
+        this.#addRuleButton.onclick = () => Document.addRule('', '');
+        this.#resetRulesButton.onclick = async () => {
+            (Array.from(this.#rules.children) as Array<OptionRuleElement>).forEach(rule => rule.remove());
 
-    return testRulesOutput.value = calculateSlug(match, rule.output);
-}
+            const defaultRules = await Rules.getDefault();
 
-testRulesInput.onkeydown = () => testRules();
-testRulesInput.onkeyup = () => testRules();
+            for (const { expression, output } of defaultRules) {
+                Document.addRule(expression, output);
+            }
+        };
+    }
 
-testRules();
+    public static addRule(expression: string, output: string) {
+        const optionRule = document.createElement('option-rule') as OptionRuleElement;
 
-function saveOptions(event: Event) {
-    browser.storage.sync.set({
-        autoSort: document.querySelector<HTMLFormElement>('#auto-sort')!.checked,
-        rules: getRules()
-    });
+        optionRule.expression = expression;
+        optionRule.output = output;
 
-    event.preventDefault();
-}
+        this.#rules.prepend(optionRule);
+    }
 
-async function restoreOptions() {
-    const storage = await browser.storage.sync.get() as {
-        autoSort: boolean,
-        rules: Array<Rule>
-    };
+    public static registerTestRuleListener(element: HTMLElement): void {
+        element.onkeydown = () => this.testRules();
+        element.onkeyup = () => this.testRules();
+    }
 
-    document.querySelector<HTMLFormElement>('#auto-sort')!.checked = storage['autoSort'] ?? false;
+    public static getRules(): Array<Rule> {
+        return (Array.from(this.#rules.children) as Array<OptionRuleElement>).map(child => ({
+            expression: child.expression,
+            output: child.output
+        }));
+    }
 
-    const rules = (storage.rules ?? []).reverse();
+    public static testRules() {
+        const input = this.#testRulesInput.value;
 
-    if (rules.length === 0) addRule('([^\\.]+)@.*$', '$1');
+        const matchingRule = Rules.findMatchingRule(this.getRules(), input);
+        if (matchingRule === undefined)
+            return this.#testRulesOutput.value = 'No rule matched';
 
-    for (const { expression, output } of rules) {
-        addRule(expression, output);
+        return this.#testRulesOutput.value = Rules.calculateSlug(matchingRule);
+    }
+
+    public static saveOptions() {
+        browser.storage.sync.set({
+            autoSort: document.querySelector<HTMLFormElement>('#auto-sort')!.checked,
+            rules: Document.getRules()
+        });
+    }
+
+    public static async restoreOptions() {
+        const autoSort: boolean = (await browser.storage.sync.get('autoSort'))['autoSort'] as boolean;
+        const rules = await Rules.get();
+
+        document.querySelector<HTMLFormElement>('#auto-sort')!.checked = autoSort ?? false;
+
+        for (const { expression, output } of rules) {
+            Document.addRule(expression, output);
+        }
     }
 }
 
-document.addEventListener('DOMContentLoaded', restoreOptions);
-document.querySelector('form')!.addEventListener('submit', saveOptions);
+Document.register();
 
-// calculateSlug("2.something.test@example.com".match(/([^\.]+)@.*$/), "$1")
-function calculateSlug(match: RegExpMatchArray, output: string): string {
-    return output.replaceAll(/\$\d/g, substring => {
-        const group = Number(substring[1]);
-        const groupInMatch = match[group];
+class OptionRuleElement extends HTMLElement {
+    #expressionInput: HTMLInputElement;
+    #outputInput: HTMLInputElement;
+    #removeButton: HTMLButtonElement;
 
-        if (groupInMatch !== undefined)
-            return groupInMatch;
+    public constructor() {
+        super();
 
-        return substring;
-    });
-}
+        /*
+        <template id="option-rule-template">
+            <li>
+                <div>
+                    <input type="text" class="expression" value="([^\.]+)@.*$">
+                    <input type="text" class="output" value="$1">
+                    <button class="removeRule" type="button">Remove rule</button>
+                </div>
+            </li>
+        </template>
+        */
 
-function findMatchingRule(rules: Array<Rule>, address: string): { match: RegExpMatchArray, rule: Rule } | undefined {
-    for (const rule of rules) {
-        const regex = new RegExp(rule.expression);
-        const match = address.match(regex);
-        if (match !== null)
-            return { match, rule };
+        const li = document.createElement('li');
+        const div = document.createElement('div');
+
+        this.#expressionInput = document.createElement('input');
+        this.#expressionInput.type = 'text';
+
+        this.#outputInput = document.createElement('input');
+        this.#outputInput.type = 'text';
+
+        this.#removeButton = document.createElement('button');
+        this.#removeButton.innerText = 'Remove rule';
+        this.#removeButton.onclick = () => this.remove();
+
+        Document.registerTestRuleListener(this.#expressionInput);
+        Document.registerTestRuleListener(this.#outputInput);
+
+        const shadowRoot = this.attachShadow({ mode: 'open' });
+
+        div.appendChild(this.#expressionInput);
+        div.appendChild(this.#outputInput);
+        div.appendChild(this.#removeButton);
+        li.appendChild(div);
+
+        shadowRoot.appendChild(li);
+    }
+
+    public getRule(): Rule {
+        return {
+            expression: this.expression,
+            output: this.output
+        };
+    }
+
+    public connectedCallback(): void {
+        Document.testRules();
+    }
+
+    set expression(value: string) {
+        this.#expressionInput.value = value;
+    }
+
+    get expression(): string {
+        return this.#expressionInput.value;
+    }
+
+    set output(value: string) {
+        this.#outputInput.value = value;
+    }
+
+    get output(): string {
+        return this.#outputInput.value;
     }
 }
 
-const ruleTemplate = document.querySelector<HTMLTemplateElement>('#rule')!;
-const rulesContainer = document.querySelector<HTMLOListElement>('#rules')!;
-
-function addRule(expression: string, output: string) {
-    const rule = ruleTemplate.content.cloneNode(true) as DocumentFragment;
-
-    const expressionElement = rule.querySelector<HTMLFormElement>('.expression')!;
-
-    expressionElement.value = expression;
-    expressionElement.onkeydown = () => testRules();
-    expressionElement.onkeyup = () => testRules();
-
-    const outputElement = rule.querySelector<HTMLFormElement>('.output')!;
-
-    outputElement.value = output;
-    outputElement.onkeydown = () => testRules();
-    outputElement.onkeyup = () => testRules();
-
-    const ruleContainer = document.createElement('div');
-
-    rule.querySelector<HTMLButtonElement>('.removeRule')!.onclick = () => {
-        ruleContainer.remove();
-        testRules();
-    };
-
-    ruleContainer.append(rule);
-    rulesContainer.prepend(ruleContainer);
-
-    testRules();
-}
-
-document.querySelector<HTMLButtonElement>('#addRule')!.onclick = () => {
-    addRule('', '');
-};
+customElements.define('option-rule', OptionRuleElement);

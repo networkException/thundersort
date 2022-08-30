@@ -2,6 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
+        <title>thundersort options</title>
         <style>
             body {
                 padding: 10px;
@@ -35,19 +36,12 @@
 
             <button id="addRule" type="button">Add rule</button>
 
-            <template id="rule">
-                <li class="rule">
-                    <div>
-                        <input type="text" class="expression" value="([^\.]+)@.*$">
-                        <input type="text" class="output" value="$1">
-                        <button class="removeRule" type="button">Remove rule</button>
-                    </div>
-                </li>
-            </template>
-
             <ol id="rules">
             </ol>
 
+            <button id="resetRules" type="button">Reset rules</button>
+
+            <br>
             <br>
 
             <label for="test-rules-input">Enter an address to test the rules</label>
@@ -63,7 +57,7 @@
             <div class="output"></div>
 
             <hr>
-            <button type="submit">Save</button>
+            <button id="save" type="button">Save</button>
         </form>
         <script type="module" src="options.js"></script>
     </body>

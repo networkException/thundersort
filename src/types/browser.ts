@@ -11,7 +11,8 @@ import { Tab } from './tab';
 
 export declare interface Browser {
     accounts: {
-        get(accountId: string): Promise<MailAccount>
+        get(accountId: string): Promise<MailAccount>,
+        list(): Promise<Array<MailAccount>>
     };
     addressBooks: void;
     browserAction: void;
