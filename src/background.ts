@@ -24,11 +24,19 @@ browser.storage.onChanged.addListener((changes, area) => {
     }
 });
 
-/// Determines all possible recipients from a message header. For this we use Thunderbird's pre-parsed attributes bccList, ccList and recipients.
-/// However, this does not work with some emails from mail lists, for example from GitHub, because no header mentions the actual recipient, only a mail list.
-/// The only way to extract the recipient in this case is the `Received` header, which has a sub-header `for`.
+/**
+ * Extract recipient candidates from as many headers as possible
+ */
 const getRecipients = async (message: MessageHeader): Promise<Array<string> | undefined> => {
-    const recipients: Array<string> = [ ...message.bccList, ...message.ccList, ...message.recipients ];
+    const headers = (await browser.messages.getFull(message.id)).headers;
+
+    const recipients: Array<string> = [
+        ...message.bccList,
+        ...message.ccList,
+        ...message.recipients,
+        ...(headers?.['x-github-recipient-address'] ?? []),
+        ...(headers?.['delivered-to'] ?? [])
+    ];
 
     if (recipients.length > 0) return recipients;
 };
@@ -60,7 +68,6 @@ const sortMessage = async (inbox: MailFolder, message: MessageHeader): Promise<v
         console.log('Sort: No rule found matching any recipient.');
         return;
     }
-
 
     // Noop if the message already is in a folder with the slug as the name
     if (message.folder.name === slug)

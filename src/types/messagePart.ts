@@ -1,10 +1,7 @@
 export declare interface MessagePart {
     body?: string;
     contentType?: string;
-    headers?: {
-        'delivered-to': Array<string>,
-        'to': Array<string>
-    };
+    headers?: Record<string, Array<string>>;
     name?: string;
     partName?: string;
     parts?: Array<MessagePart>;
