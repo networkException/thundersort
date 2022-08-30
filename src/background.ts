@@ -24,6 +24,17 @@ browser.storage.onChanged.addListener((changes, area) => {
     }
 });
 
+
+/**
+ * Remove angle brackets surrounding the input string
+ */
+function stripOuterAngleBrackets(input: string): string {
+    if (input.startsWith('<') && input.endsWith('>'))
+        return input.substring(1, input.length - 1);
+
+    return input;
+}
+
 /**
  * Extract recipient candidates from as many headers as possible
  */
@@ -38,7 +49,7 @@ const getRecipients = async (message: MessageHeader): Promise<Array<string> | un
         ...(headers?.['delivered-to'] ?? [])
     ];
 
-    if (recipients.length > 0) return recipients;
+    if (recipients.length > 0) return recipients.map(stripOuterAngleBrackets);
 };
 
 const sortMessage = async (inbox: MailFolder, message: MessageHeader): Promise<void> => {
@@ -65,7 +76,8 @@ const sortMessage = async (inbox: MailFolder, message: MessageHeader): Promise<v
     }
 
     if (!recipient || !slug) {
-        console.log('Sort: No rule found matching any recipient.');
+        console.log(`Sort: No rule found matching any recipient. (${recipients.map(recipient => `"${recipient}"`).join(', ')})`);
+
         return;
     }
 
