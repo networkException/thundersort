@@ -36,6 +36,19 @@ function stripOuterAngleBrackets(input: string): string {
 }
 
 /**
+ * Return email address if input is in "Name <address>" format
+ */
+function stripNameWithAngleBrackets(input: string): string {
+    const regex = /^(?:.*)<(.*)>$/;
+    const match = input.match(regex);
+
+    if (match === null)
+        return input;
+
+    return match[1];
+}
+
+/**
  * Extract recipient candidates from as many headers as possible
  */
 const getRecipients = async (message: MessageHeader): Promise<Array<string> | undefined> => {
@@ -49,7 +62,9 @@ const getRecipients = async (message: MessageHeader): Promise<Array<string> | un
         ...(headers?.['delivered-to'] ?? [])
     ];
 
-    if (recipients.length > 0) return recipients.map(stripOuterAngleBrackets);
+    if (recipients.length > 0) return recipients
+        .map(stripOuterAngleBrackets)
+        .map(stripNameWithAngleBrackets);
 };
 
 const sortMessage = async (inbox: MailFolder, message: MessageHeader): Promise<void> => {
