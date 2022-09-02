@@ -48,6 +48,10 @@ function stripNameWithAngleBrackets(input: string): string {
     return match[1];
 }
 
+function unique<T>(value: T, index: number, array: Array<T>) {
+    return array.indexOf(value) === index;
+}
+
 /**
  * Extract recipient candidates from as many headers as possible
  */
@@ -64,7 +68,8 @@ const getRecipients = async (message: MessageHeader): Promise<Array<string> | un
 
     if (recipients.length > 0) return recipients
         .map(stripOuterAngleBrackets)
-        .map(stripNameWithAngleBrackets);
+        .map(stripNameWithAngleBrackets)
+        .filter(unique);
 };
 
 const sortMessage = async (inbox: MailFolder, message: MessageHeader): Promise<void> => {
