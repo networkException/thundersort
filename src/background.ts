@@ -100,7 +100,7 @@ const sortMessage = async (inbox: MailFolder, message: MessageHeader): Promise<v
     if (message.folder.name === slug)
         return;
 
-    console.log(`Sort: Message from ${message.author} to ${recipient} should be moved to ${slug}`);
+    console.log(`Sort: Message from ${message.author} to ${recipient} should be moved to ${slug} (possible recipients: ${recipients.map(recipient => `"${recipient}"`).join(', ')})`);
 
     const subFolders = await browser.folders.getSubFolders(inbox, false);
 
