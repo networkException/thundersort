@@ -44,17 +44,41 @@
             <br>
             <br>
 
-            <label for="test-rules-input">Enter an address to test the rules</label>
-            <br>
-            <input type="text" id="test-rules-input" value="2.something.test@example.com" style="width: 100%">
+            <fieldset>
+                <legend>Test case</legend>
+
+                <label for="test-rules-recipient-input">Enter a recipient address to test the rules</label>
+                <br>
+                <input type="text" id="test-rules-recipient-input" value="2.something.test@yourdomain.com" style="width: 100%">
+
+                <br><br>
+
+                <label for="test-rules-sender-input">Enter a sender address to test the rules</label>
+                <br>
+                <input type="text" id="test-rules-sender-input" value="sender@example.com" style="width: 100%">
+            </fieldset>
 
             <br>
 
-            <label for="test-rules-output">Matched slug</label>
-            <br>
-            <input type="text" id="test-rules-output" disabled style="width: 100%">
+            <fieldset>
+                <legend>Match</legend>
 
-            <div class="output"></div>
+                <label for="test-rules-address-output">Matched address</label>
+                <br>
+                <input type="text" id="test-rules-address-output" disabled style="width: 100%">
+
+                <br><br>
+
+                <label for="test-rules-slug-output">Matched slug</label>
+                <br>
+                <input type="text" id="test-rules-slug-output" disabled style="width: 100%">
+
+                <br><br>
+
+                <label for="test-rules-matchedOn-output">Matched on</label>
+                <br>
+                <input type="text" id="test-rules-matchedOn-output" disabled style="width: 100%">
+            </fieldset>
 
             <hr>
             <button id="save" type="button">Save</button>

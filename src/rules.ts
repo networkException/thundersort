@@ -2,12 +2,19 @@ import { Browser } from './types/browser';
 
 declare const browser: Browser;
 
+export type MatchOn = 'senders' | 'recipients';
+
 export declare interface Rule {
     expression: string;
     output: string;
+    matchOn: MatchOn;
 }
 
-export type MatchedRule = { match: RegExpMatchArray, rule: Rule };
+export type Match = {
+    address: string;
+    slug: string;
+    matchedOn: MatchOn;
+};
 
 export class Rules {
     /**
@@ -41,19 +48,20 @@ export class Rules {
         return uniqueMailDomains
             .map(domain => ({
                 expression: `([^\\.]+)@${this.escapeRegex(domain)}$`,
-                output: '$1'
+                output: '$1',
+                matchOn: 'recipients',
             }));
     }
 
     /**
      * Get folder slug for a specific match of a rule
      */
-    public static calculateSlug(matchedRule: MatchedRule): string {
-        const output = matchedRule.rule.output;
+    private static calculateSlug(rule: Rule, match: RegExpMatchArray): string {
+        const output = rule.output;
 
         return output.replaceAll(/\$\d/g, substring => {
             const group = Number(substring[1]);
-            const groupInMatch = matchedRule.match[group];
+            const groupInMatch = match[group];
 
             if (groupInMatch !== undefined)
                 return groupInMatch;
@@ -63,25 +71,22 @@ export class Rules {
     }
 
     /**
-     * Find the first match in a list of rules, given an address
+     * Find the first match in a list of rules, given recipients and senders
      */
-    public static findMatchingRule(rules: Array<Rule>, address: string): MatchedRule | undefined {
+    public static match(rules: Array<Rule>, recipients: Array<string>, senders: Array<string>): Match | undefined {
         for (const rule of rules) {
-            const regex = new RegExp(rule.expression);
-            const match = address.match(regex);
-            if (match !== null)
-                return { match, rule };
+            for (const addressCandidate of rule.matchOn === 'recipients' ? recipients : senders) {
+                const regex = new RegExp(rule.expression);
+                const match = addressCandidate.match(regex);
+
+                if (match !== null) {
+                    return {
+                        address: addressCandidate,
+                        slug: this.calculateSlug(rule, match),
+                        matchedOn: rule.matchOn
+                    };
+                }
+            }
         }
-    }
-
-    /**
-     * Find the first match for a list of rules and return the slug
-     */
-    public static findMatchingSlug(rules: Array<Rule>, address: string): string | undefined {
-        const matchingRule = this.findMatchingRule(rules, address);
-        if (matchingRule === undefined)
-            return undefined;
-
-        return this.calculateSlug(matchingRule);
     }
 }

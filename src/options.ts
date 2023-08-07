@@ -1,11 +1,16 @@
-import { Rule, Rules } from './rules.js';
+import { MatchOn, Rule, Rules } from './rules.js';
 import { Browser } from './types/browser';
 
 declare const browser: Browser;
 
 class Document {
-    static #testRulesInput = document.querySelector<HTMLInputElement>('#test-rules-input')!;
-    static #testRulesOutput = document.querySelector<HTMLInputElement>('#test-rules-output')!;
+    static #testRulesRecipientInput = document.querySelector<HTMLInputElement>('#test-rules-recipient-input')!;
+    static #testRulesSenderInput = document.querySelector<HTMLInputElement>('#test-rules-sender-input')!;
+
+    static #testRulesAddressOutput = document.querySelector<HTMLInputElement>('#test-rules-address-output')!;
+    static #testRulesSlugOutput = document.querySelector<HTMLInputElement>('#test-rules-slug-output')!;
+    static #testRulesMatchedOnOutput = document.querySelector<HTMLInputElement>('#test-rules-matchedOn-output')!;
+
     static #rules = document.querySelector<HTMLOListElement>('#rules')!;
 
     static #addRuleButton = document.querySelector<HTMLButtonElement>('#addRule')!;
@@ -17,7 +22,8 @@ class Document {
         document.addEventListener('DOMContentLoaded', Document.restoreOptions);
         this.#saveButton.onclick = () => Document.saveOptions();
 
-        this.registerTestRuleListener(this.#testRulesInput);
+        this.registerTestRuleListener(this.#testRulesRecipientInput);
+        this.registerTestRuleListener(this.#testRulesSenderInput);
 
         this.#addRuleButton.onclick = () => Document.addRule('', '');
         this.#resetRulesButton.onclick = async () => {
@@ -43,23 +49,33 @@ class Document {
     public static registerTestRuleListener(element: HTMLElement): void {
         element.onkeydown = () => this.testRules();
         element.onkeyup = () => this.testRules();
+        element.onchange = () => this.testRules();
     }
 
     public static getRules(): Array<Rule> {
         return (Array.from(this.#rules.children) as Array<OptionRuleElement>).map(child => ({
             expression: child.expression,
-            output: child.output
+            output: child.output,
+            matchOn: child.matchOn,
         }));
     }
 
     public static testRules() {
-        const input = this.#testRulesInput.value;
+        const recipient = this.#testRulesRecipientInput.value;
+        const sender = this.#testRulesSenderInput.value;
 
-        const matchingRule = Rules.findMatchingRule(this.getRules(), input);
-        if (matchingRule === undefined)
-            return this.#testRulesOutput.value = 'No rule matched';
+        const match = Rules.match(this.getRules(), [ recipient ], [ sender ]);
+        if (!match) {
+            this.#testRulesAddressOutput.value = 'No rule matched';
+            this.#testRulesSlugOutput.value = 'No rule matched';
+            this.#testRulesMatchedOnOutput.value = 'No rule matched';
 
-        return this.#testRulesOutput.value = Rules.calculateSlug(matchingRule);
+            return;
+        }
+
+        this.#testRulesAddressOutput.value = match.address;
+        this.#testRulesSlugOutput.value = match.slug;
+        this.#testRulesMatchedOnOutput.value = match.matchedOn;
     }
 
     public static saveOptions() {
@@ -86,6 +102,7 @@ Document.register();
 class OptionRuleElement extends HTMLElement {
     #expressionInput: HTMLInputElement;
     #outputInput: HTMLInputElement;
+    #matchOnSelector: HTMLSelectElement;
     #removeButton: HTMLButtonElement;
 
     public constructor() {
@@ -97,6 +114,10 @@ class OptionRuleElement extends HTMLElement {
                 <div>
                     <input type="text" class="expression" value="([^\.]+)@.*$">
                     <input type="text" class="output" value="$1">
+                    <select name="matchOn" class="matchOn">
+                        <option value="recipients">Recipients</option>
+                        <option value="senders">Senders</option>
+                    </select>
                     <button class="removeRule" type="button">Remove rule</button>
                 </div>
             </li>
@@ -112,17 +133,32 @@ class OptionRuleElement extends HTMLElement {
         this.#outputInput = document.createElement('input');
         this.#outputInput.type = 'text';
 
+        this.#matchOnSelector = document.createElement('select');
+
+        const recipientsOption = document.createElement('option');
+        recipientsOption.innerText = 'Recipients';
+        recipientsOption.value = 'recipients';
+
+        const sendersOption = document.createElement('option');
+        sendersOption.innerText = 'Senders';
+        sendersOption.value = 'senders';
+
+        this.#matchOnSelector.appendChild(recipientsOption);
+        this.#matchOnSelector.appendChild(sendersOption);
+
         this.#removeButton = document.createElement('button');
         this.#removeButton.innerText = 'Remove rule';
         this.#removeButton.onclick = () => this.remove();
 
         Document.registerTestRuleListener(this.#expressionInput);
         Document.registerTestRuleListener(this.#outputInput);
+        Document.registerTestRuleListener(this.#matchOnSelector);
 
         const shadowRoot = this.attachShadow({ mode: 'open' });
 
         div.appendChild(this.#expressionInput);
         div.appendChild(this.#outputInput);
+        div.appendChild(this.#matchOnSelector);
         div.appendChild(this.#removeButton);
         li.appendChild(div);
 
@@ -132,7 +168,8 @@ class OptionRuleElement extends HTMLElement {
     public getRule(): Rule {
         return {
             expression: this.expression,
-            output: this.output
+            output: this.output,
+            matchOn: this.matchOn,
         };
     }
 
@@ -154,6 +191,14 @@ class OptionRuleElement extends HTMLElement {
 
     get output(): string {
         return this.#outputInput.value;
+    }
+
+    set matchOn(matchOn: MatchOn) {
+        this.#matchOnSelector.value = matchOn;
+    }
+
+    get matchOn(): MatchOn {
+        return this.#matchOnSelector.value as MatchOn;
     }
 }
 

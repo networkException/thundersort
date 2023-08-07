@@ -55,7 +55,7 @@ function unique<T>(value: T, index: number, array: Array<T>) {
 /**
  * Extract recipient candidates from as many headers as possible
  */
-const getRecipients = async (message: MessageHeader): Promise<Array<string> | undefined> => {
+const getRecipients = async (message: MessageHeader): Promise<Array<string>> => {
     const headers = (await browser.messages.getFull(message.id)).headers;
 
     const recipients: Array<string> = [
@@ -66,46 +66,61 @@ const getRecipients = async (message: MessageHeader): Promise<Array<string> | un
         ...(headers?.['delivered-to'] ?? [])
     ];
 
-    if (recipients.length > 0) return recipients
+    return recipients
         .map(stripOuterAngleBrackets)
         .map(stripNameWithAngleBrackets)
         .filter(unique);
 };
 
+/**
+ * Extract sender candidates from as many headers as possible
+ */
+const getSenders = async (message: MessageHeader): Promise<Array<string>> => {
+    const headers = (await browser.messages.getFull(message.id)).headers;
+
+    const senders: Array<string> = [
+        message.author,
+        ...(headers?.['from'] ?? []),
+        ...(headers?.['reply-to'] ?? [])
+    ];
+
+    return senders
+        .map(stripOuterAngleBrackets)
+        .map(stripNameWithAngleBrackets)
+        .filter(unique);
+}
+
 const sortMessage = async (inbox: MailFolder, message: MessageHeader): Promise<void> => {
     // The address the message got sent to
-    const recipients: Array<string> | undefined = await getRecipients(message);
+    const recipients: Array<string> = await getRecipients(message);
 
-    if (!recipients) {
-        console.log('Sort: Message does not have recipient :(');
+    // The address the message got sent from
+    const senders: Array<string> = await getSenders(message);
+
+    if (recipients.length === 0 && senders.length === 0) {
+        console.log('Sort: Message does not have a recipient or sender :(', message);
         return;
     }
 
-    let slug: string | undefined;
-    let recipient: string | undefined;
+    const match = Rules.match(await Rules.get(), recipients, senders);
 
-    const rules = await Rules.get();
-
-    for (const possibleRecipient of recipients) {
-        const matchingRule = Rules.findMatchingRule(rules, possibleRecipient);
-        if (matchingRule) {
-            recipient = possibleRecipient;
-            slug = Rules.calculateSlug(matchingRule);
-            break;
-        }
-    }
-
-    if (!recipient || !slug) {
-        console.log(`Sort: No rule found matching any recipient. (${recipients.map(recipient => `"${recipient}"`).join(', ')})`);
+    if (!match) {
+        console.log(`Sort: No matching rules found. (recipients: ${recipients.map(recipient => `"${recipient}"`).join(', ')}, senders: ${senders.map(sender => `"${sender}"`).join(', ')})`);
 
         return;
     }
+
+    const { address, slug, matchedOn } = match;
 
     // Noop if the message already is in a folder with the slug as the name
     if (message.folder.name === slug)
         return;
 
-    console.log(`Sort: Message from ${message.author} to ${recipient} should be moved to ${slug} (possible recipients: ${recipients.map(recipient => `"${recipient}"`).join(', ')})`);
+    if (matchedOn === 'recipients') {
+        console.log(`Sort: Message from ${message.author} to matched address ${address} should be moved to ${slug} (possible recipients: ${recipients.map(recipient => `"${recipient}"`).join(', ')})`);
+    } else {
+        console.log(`Sort: Message from matched address ${address} should be moved to ${slug} (possible senders: ${senders.map(sender => `"${sender}"`).join(', ')})`)
+    }
 
     const subFolders = await browser.folders.getSubFolders(inbox, false);
 
