@@ -25,23 +25,24 @@ class Document {
         this.registerTestRuleListener(this.#testRulesRecipientInput);
         this.registerTestRuleListener(this.#testRulesSenderInput);
 
-        this.#addRuleButton.onclick = () => Document.addRule('', '');
+        this.#addRuleButton.onclick = () => Document.addRule({ expression: '', output: '', matchOn: 'recipients' });
         this.#resetRulesButton.onclick = async () => {
             (Array.from(this.#rules.children) as Array<OptionRuleElement>).forEach(rule => rule.remove());
 
             const defaultRules = await Rules.getDefault();
 
-            for (const { expression, output } of defaultRules) {
-                Document.addRule(expression, output);
+            for (const rule of defaultRules) {
+                Document.addRule(rule);
             }
         };
     }
 
-    public static addRule(expression: string, output: string) {
+    public static addRule(rule: Rule) {
         const optionRule = document.createElement('option-rule') as OptionRuleElement;
 
-        optionRule.expression = expression;
-        optionRule.output = output;
+        optionRule.expression = rule.expression;
+        optionRule.output = rule.output;
+        optionRule.matchOn = rule.matchOn;
 
         this.#rules.prepend(optionRule);
     }
@@ -91,8 +92,8 @@ class Document {
 
         document.querySelector<HTMLFormElement>('#auto-sort')!.checked = autoSort ?? false;
 
-        for (const { expression, output } of rules) {
-            Document.addRule(expression, output);
+        for (const rule of rules) {
+            Document.addRule(rule);
         }
     }
 }
