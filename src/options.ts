@@ -40,9 +40,7 @@ class Document {
     public static addRule(rule: Rule) {
         const optionRule = document.createElement('option-rule') as OptionRuleElement;
 
-        optionRule.expression = rule.expression;
-        optionRule.output = rule.output;
-        optionRule.matchOn = rule.matchOn;
+        optionRule.setRule(rule);
 
         this.#rules.append(optionRule);
     }
@@ -104,6 +102,9 @@ class OptionRuleElement extends HTMLElement {
     #expressionInput: HTMLInputElement;
     #outputInput: HTMLInputElement;
     #matchOnSelector: HTMLSelectElement;
+
+    #moveUpButton: HTMLButtonElement;
+    #moveDownButton: HTMLButtonElement;
     #removeButton: HTMLButtonElement;
 
     public constructor() {
@@ -119,6 +120,8 @@ class OptionRuleElement extends HTMLElement {
                         <option value="recipients">Recipients</option>
                         <option value="senders">Senders</option>
                     </select>
+                    <button class="removeRule" type="button">Move up</button>
+                    <button class="removeRule" type="button">Move down</button>
                     <button class="removeRule" type="button">Remove rule</button>
                 </div>
             </li>
@@ -147,6 +150,40 @@ class OptionRuleElement extends HTMLElement {
         this.#matchOnSelector.appendChild(recipientsOption);
         this.#matchOnSelector.appendChild(sendersOption);
 
+        this.#moveUpButton = document.createElement('button');
+        this.#moveUpButton.innerText = 'Move up';
+        this.#moveUpButton.onclick = () => {
+            const upperOptionRuleElement = this.previousElementSibling as OptionRuleElement | null;
+
+            if (upperOptionRuleElement === null)
+                return;
+
+            const lowerOptionRuleElement = this;
+
+            const upperRule = upperOptionRuleElement.getRule();
+            const lowerRule = lowerOptionRuleElement.getRule();
+
+            upperOptionRuleElement.setRule(lowerRule);
+            lowerOptionRuleElement.setRule(upperRule);
+        };
+
+        this.#moveDownButton = document.createElement('button');
+        this.#moveDownButton.innerText = 'Move down';
+        this.#moveDownButton.onclick = () => {
+            const lowerOptionRuleElement = this.nextElementSibling as OptionRuleElement | null;
+
+            if (lowerOptionRuleElement === null)
+                return;
+
+            const upperOptionRuleElement = this;
+
+            const lowerRule = lowerOptionRuleElement.getRule();
+            const upperRule = upperOptionRuleElement.getRule();
+
+            lowerOptionRuleElement.setRule(upperRule);
+            upperOptionRuleElement.setRule(lowerRule);
+        };
+
         this.#removeButton = document.createElement('button');
         this.#removeButton.innerText = 'Remove rule';
         this.#removeButton.onclick = () => this.remove();
@@ -160,7 +197,11 @@ class OptionRuleElement extends HTMLElement {
         div.appendChild(this.#expressionInput);
         div.appendChild(this.#outputInput);
         div.appendChild(this.#matchOnSelector);
+
+        div.appendChild(this.#moveUpButton);
+        div.appendChild(this.#moveDownButton);
         div.appendChild(this.#removeButton);
+
         li.appendChild(div);
 
         shadowRoot.appendChild(li);
@@ -172,6 +213,12 @@ class OptionRuleElement extends HTMLElement {
             output: this.output,
             matchOn: this.matchOn,
         };
+    }
+
+    public setRule(rule: Rule) {
+        this.expression = rule.expression;
+        this.output = rule.output;
+        this.matchOn = rule.matchOn;
     }
 
     public connectedCallback(): void {
