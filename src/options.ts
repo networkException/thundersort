@@ -44,7 +44,7 @@ class Document {
         optionRule.output = rule.output;
         optionRule.matchOn = rule.matchOn;
 
-        this.#rules.prepend(optionRule);
+        this.#rules.append(optionRule);
     }
 
     public static registerTestRuleListener(element: HTMLElement): void {
