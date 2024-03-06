@@ -3,7 +3,7 @@
         "bundle": "./bundle.sh"
     },
     "dependencies": {
-        "typescript": "^5.3.3"
+        "typescript": "^5.4.2"
     },
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "^6.16.0",
