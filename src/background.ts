@@ -60,6 +60,7 @@ const getRecipients = async (message: MessageHeader): Promise<Array<string>> => 
 
     const recipients: Array<string> = [
         // NOTE: These have the best chance to be the correct address
+        ...(headers?.['x-original-to'] ?? []),
         ...(headers?.['x-github-recipient-address'] ?? []),
 
         ...message.recipients,
@@ -67,6 +68,7 @@ const getRecipients = async (message: MessageHeader): Promise<Array<string>> => 
         ...message.ccList,
 
         ...(headers?.['delivered-to'] ?? []),
+        ...(headers?.['envelope-to'] ?? []),
     ];
 
     return recipients
