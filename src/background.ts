@@ -137,19 +137,34 @@ const sortMessage = async (inbox: MailFolder, message: MessageHeader): Promise<v
     browser.messages.move([ message.id ], folder);
 };
 
+// NOTE: Taken from https://webextension-api.thunderbird.net/en/115/examples/messageLists.html#working-with-message-lists
+async function* getAllMessages(messageList: Promise<MessageList> | MessageList): AsyncGenerator<MessageHeader> {
+    let page = await messageList;
+
+    for (let message of page.messages)
+        yield message;
+
+    while (page.id) {
+        page = await browser.messages.continueList(page.id);
+
+        for (let message of page.messages)
+            yield message;
+    }
+}
+
 const sortMessageList = async (inbox: MailFolder, messageList: MessageList, ignoreRead: boolean = true) => {
     // Ignore non inbox folders
     if (inbox.type !== 'inbox')
         return;
 
-    for (const message of messageList.messages) {
+    for await (const message of getAllMessages(messageList)) {
         // Ignore already read messages if enabled
         if (ignoreRead && message.read) {
             console.log('Sort: Ignoring read message');
             continue;
         }
 
-        sortMessage(inbox, message);
+        await sortMessage(inbox, message);
     }
 };
 
