@@ -59,11 +59,14 @@ const getRecipients = async (message: MessageHeader): Promise<Array<string>> => 
     const headers = (await browser.messages.getFull(message.id)).headers;
 
     const recipients: Array<string> = [
+        // NOTE: These have the best chance to be the correct address
+        ...(headers?.['x-github-recipient-address'] ?? []),
+
+        ...message.recipients,
         ...message.bccList,
         ...message.ccList,
-        ...message.recipients,
-        ...(headers?.['x-github-recipient-address'] ?? []),
-        ...(headers?.['delivered-to'] ?? [])
+
+        ...(headers?.['delivered-to'] ?? []),
     ];
 
     return recipients
