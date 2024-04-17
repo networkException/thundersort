@@ -59,6 +59,7 @@ export declare interface Browser {
         getRaw(messageId: number): Promise<string>,
         move(messageIds: Array<number>, destination: MailFolder): void,
         list(folder: MailFolder): Promise<MessageList>,
+        continueList(messageListId: string): Promise<MessageList>,
         onNewMailReceived: Event<[ folder: MailFolder, messages: MessageList ]>,
         onUpdated: Event<[ message: MessageHeader, changedProperties: MessageChangeProperties ]>
     };
